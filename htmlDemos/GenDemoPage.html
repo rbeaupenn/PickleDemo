@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechniqueAI - Sports Analysis App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #06B6D4;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .app-container {
+            min-height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Navigation */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--light);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .user-menu:hover {
+            transform: translateY(-2px);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Page Content */
+        .page {
+            display: none;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Home Page */
+        .hero-section {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray);
+            margin-bottom: 3rem;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--primary);
+            border-radius: 15px;
+            padding: 4rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(6, 182, 212, 0.05));
+        }
+
+        .upload-area:hover {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(6, 182, 212, 0.1));
+            transform: scale(1.02);
+        }
+
+        .upload-area.dragover {
+            background: rgba(79, 70, 229, 0.2);
+            transform: scale(1.05);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.25rem;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: var(--gray);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .options-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .option-card {
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .option-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .select-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            background: white;
+        }
+
+        .select-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .analyze-btn {
+            margin-top: 2rem;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.25rem;
+        }
+
+        /* Analysis Page */
+        .analysis-header {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .analysis-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .analysis-meta {
+            display: flex;
+            gap: 2rem;
+            color: var(--gray);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .skeleton-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .skeleton-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .skeleton-title {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .skeleton-canvas {
+            background: var(--light);
+            border-radius: 10px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .keyframe-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+        }
+
+        .keyframe-btn {
+            min-width: 80px;
+            padding: 0.5rem;
+            background: var(--light);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .keyframe-btn:hover {
+            background: white;
+            border-color: var(--primary);
+        }
+
+        .keyframe-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .analysis-details {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .feedback-section {
+            margin-top: 2rem;
+        }
+
+        .feedback-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            transition: transform 0.3s;
+        }
+
+        .feedback-item:hover {
+            transform: translateX(10px);
+        }
+
+        .feedback-icon {
+            font-size: 1.5rem;
+        }
+
+        .feedback-content h4 {
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .feedback-content p {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* Profile Page */
+        .profile-header {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .profile-info h2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+
+        .collections-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .collection-card {
+            background: var(--light);
+            border-radius: 10px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .collection-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+
+        .collection-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .collection-count {
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+
+        .progress-chart {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            background: var(--light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .injury-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .injury-list {
+            margin-top: 1rem;
+        }
+
+        .injury-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .injury-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .injury-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .status-recovered {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 1rem;
+            border: 2px dashed var(--gray);
+            background: transparent;
+            border-radius: 10px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .add-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        /* Settings Page */
+        .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .settings-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .settings-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--light);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .setting-description {
+            color: var(--gray);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: var(--gray);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            animation: modalSlide 0.3s;
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--dark);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: var(--danger);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo" onclick="showPage('home')">⚡ TechniqueAI</div>
+            <div class="nav-links">
+                <a class="nav-link active" onclick="showPage('home')">Home</a>
+                <a class="nav-link" onclick="showPage('analysis')">Analysis</a>
+                <a class="nav-link" onclick="showPage('profile')">Profile</a>
+                <a class="nav-link" onclick="showPage('settings')">Settings</a>
+            </div>
+            <div class="user-menu" onclick="showPage('profile')">
+                <div class="user-avatar">JD</div>
+                <span>John Doe</span>
+            </div>
+        </nav>
+
+        <!-- Home Page -->
+        <div id="home" class="page active">
+            <div class="hero-section">
+                <h1 class="hero-title">Improve Your Technique with AI</h1>
+                <p class="hero-subtitle">Upload your sports video and get instant, professional-grade analysis</p>
+            </div>
+
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-icon">📹</div>
+                    <div class="upload-text">Drop your video here or click to browse</div>
+                    <div class="upload-subtext">Supports MP4, MOV, AVI (max 500MB)</div>
+                    <input type="file" class="file-input" id="fileInput" accept="video/*" onchange="handleFileSelect(event)">
+                </div>
+
+                <div class="options-section">
+                    <div class="option-card">
+                        <label class="option-label" for="sport">Sport Type</label>
+                        <select class="select-input" id="sport">
+                            <option value="">Auto-detect</option>
+                            <option value="golf">Golf</option>
+                            <option value="tennis">Tennis</option>
+                            <option value="baseball">Baseball</option>
+                            <option value="basketball">Basketball</option>
+                            <option value="soccer">Soccer</option>
+                            <option value="running">Running</option>
+                            <option value="swimming">Swimming</option>
+                        </select>
+                    </div>
+                    <div class="option-card">
+                        <label class="option-label" for="collection">Add to Collection</label>
+                        <select class="select-input" id="collection">
+                            <option value="">None</option>
+                            <option value="swing">Golf Swing Progress</option>
+                            <option value="serve">Tennis Serve</option>
+                            <option value="training">Training Sessions</option>
+                            <option value="new">+ Create New Collection</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary analyze-btn" onclick="startAnalysis()">
+                    🎯 Analyze Technique
+                </button>
+            </div>
+        </div>
+
+        <!-- Analysis Results Page -->
+        <div id="analysis" class="page">
+            <div class="analysis-header">
+                <h2 class="analysis-title">Golf Swing Analysis</h2>
+                <div class="analysis-meta">
+                    <div class="meta-item">
+                        <span>📅</span>
+                        <span>Today at 2:34 PM</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>⏱️</span>
+                        <span>3.2 seconds</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>🎯</span>
+                        <span>85% form score</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="skeleton-comparison">
+                <div class="skeleton-card">
+                    <h3 class="skeleton-title">
+                        <span style="color: var(--primary);">📊</span>
+                        Your Movement
+                    </h3>
+                    <div class="skeleton-canvas">
+                        <svg class="skeleton-svg" viewBox="0 0 400 400">
+                            <!-- Simplified stick figure skeleton -->
+                            <circle cx="200" cy="80" r="20" fill="#4F46E5" stroke="#4F46E5" stroke-width="2"/>
+                            <line x1="200" y1="100" x2="200" y2="200" stroke="#4F46E5" stroke-width="3"/>
+                            <line x1="200" y1="120" x2="150" y2="180" stroke="#4F46E5" stroke-width="3"/>
+                            <line x1="200" y1="120" x2="250" y2="180" stroke="#4F46E5" stroke-width="3"/>
+                            <line x1="200" y1="200" x2="170" y2="280" stroke="#4F46E5" stroke-width="3"/>
+                            <line x1="200" y1="200" x2="230" y2="280" stroke="#4F46E5" stroke-width="3"/>
+                            <!-- Golf club -->
+                            <line x1="150" y1="180" x2="100" y2="130" stroke="#6B7280" stroke-width="2"/>
+                            <circle cx="150" cy="180" r="4" fill="#4F46E5"/>
+                            <circle cx="250" cy="180" r="4" fill="#4F46E5"/>
+                            <circle cx="170" cy="280" r="4" fill="#4F46E5"/>
+                            <circle cx="230" cy="280" r="4" fill="#4F46E5"/>
+                        </svg>
+                    </div>
+                    <div class="keyframe-selector">
+                        <button class="keyframe-btn active">Setup</button>
+                        <button class="keyframe-btn">Backswing</button>
+                        <button class="keyframe-btn">Top</button>
+                        <button class="keyframe-btn">Impact</button>
+                        <button class="keyframe-btn">Follow</button>
+                    </div>
+                </div>
+
+                <div class="skeleton-card">
+                    <h3 class="skeleton-title">
+                        <span style="color: var(--success);">✨</span>
+                        Optimized Movement
+                    </h3>
+                    <div class="skeleton-canvas">
+                        <svg class="skeleton-svg" viewBox="0 0 400 400">
+                            <!-- Improved stick figure skeleton -->
+                            <circle cx="200" cy="80" r="20" fill="#10B981" stroke="#10B981" stroke-width="2"/>
+                            <line x1="200" y1="100" x2="200" y2="200" stroke="#10B981" stroke-width="3"/>
+                            <line x1="200" y1="120" x2="140" y2="170" stroke="#10B981" stroke-width="3"/>
+                            <line x1="200" y1="120" x2="260" y2="170" stroke="#10B981" stroke-width="3"/>
+                            <line x1="200" y1="200" x2="170" y2="280" stroke="#10B981" stroke-width="3"/>
+                            <line x1="200" y1="200" x2="230" y2="280" stroke="#10B981" stroke-width="3"/>
+                            <!-- Golf club in better position -->
+                            <line x1="140" y1="170" x2="80" y2="120" stroke="#6B7280" stroke-width="2"/>
+                            <circle cx="140" cy="170" r="4" fill="#10B981"/>
+                            <circle cx="260" cy="170" r="4" fill="#10B981"/>
+                            <circle cx="170" cy="280" r="4" fill="#10B981"/>
+                            <circle cx="230" cy="280" r="4" fill="#10B981"/>
+                            <!-- Improvement arrows -->
+                            <path d="M 220 150 Q 240 140 250 150" stroke="#F59E0B" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#F59E0B" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="keyframe-selector">
+                        <button class="keyframe-btn active">Setup</button>
+                        <button class="keyframe-btn">Backswing</button>
+                        <button class="keyframe-btn">Top</button>
+                        <button class="keyframe-btn">Impact</button>
+                        <button class="keyframe-btn">Follow</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analysis-details">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Technique Feedback</h3>
+                
+                <div class="feedback-section">
+                    <div class="feedback-item">
+                        <div class="feedback-icon">⚠️</div>
+                        <div class="feedback-content">
+                            <h4>Hip Rotation</h4>
+                            <p>Your hip rotation is starting late in the downswing. Try initiating the hip turn slightly before your arms start moving down. This will generate more power and improve consistency.</p>
+                        </div>
+                    </div>
+
+                    <div class="feedback-item">
+                        <div class="feedback-icon">✅</div>
+                        <div class="feedback-content">
+                            <h4>Spine Angle</h4>
+                            <p>Excellent maintenance of spine angle throughout the swing. This is helping you make solid contact consistently.</p>
+                        </div>
+                    </div>
+
+                    <div class="feedback-item">
+                        <div class="feedback-icon">💡</div>
+                        <div class="feedback-content">
+                            <h4>Weight Transfer</h4>
+                            <p>Focus on shifting more weight to your front foot during impact. Currently showing 60/40 distribution, aim for 80/20 for more power.</p>
+                        </div>
+                    </div>
+
+                    <div class="feedback-item">
+                        <div class="feedback-icon">🎯</div>
+                        <div class="feedback-content">
+                            <h4>Club Path</h4>
+                            <p>Slight out-to-in path detected (-3°). Practice inside takeaway drills to promote a more neutral path through impact.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button class="btn btn-primary">📥 Download Report</button>
+                    <button class="btn btn-secondary">📤 Share Analysis</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profile" class="page">
+            <div class="profile-header">
+                <div class="profile-avatar">JD</div>
+                <div>
+                    <h2>John Doe</h2>
+                    <p style="color: var(--gray);">Amateur Golfer • Member since 2024</p>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">47</div>
+                            <div class="stat-label">Videos Analyzed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">12%</div>
+                            <div class="stat-label">Improvement</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">8.2</div>
+                            <div class="stat-label">Avg Score</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="collections-section">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Your Collections</h3>
+                <div class="collection-grid">
+                    <div class="collection-card">
+                        <div class="collection-name">🏌️ Golf Swing Progress</div>
+                        <div class="collection-count">23 videos</div>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.875rem; color: var(--success);">↑ 15% improvement</span>
+                                <span style="font-size: 0.875rem; color: var(--gray);">Last 30 days</span>
+                            </div>
+                            <div style="height: 4px; background: var(--light); border-radius: 2px; overflow: hidden;">
+                                <div style="width: 75%; height: 100%; background: linear-gradient(to right, var(--primary), var(--success));"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collection-card">
+                        <div class="collection-name">🎾 Tennis Serve</div>
+                        <div class="collection-count">12 videos</div>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.875rem; color: var(--success);">↑ 8% improvement</span>
+                                <span style="font-size: 0.875rem; color: var(--gray);">Last 30 days</span>
+                            </div>
+                            <div style="height: 4px; background: var(--light); border-radius: 2px; overflow: hidden;">
+                                <div style="width: 60%; height: 100%; background: linear-gradient(to right, var(--primary), var(--success));"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collection-card">
+                        <div class="collection-name">🏃 Running Form</div>
+                        <div class="collection-count">8 videos</div>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.875rem; color: var(--warning);">→ No change</span>
+                                <span style="font-size: 0.875rem; color: var(--gray);">Last 30 days</span>
+                            </div>
+                            <div style="height: 4px; background: var(--light); border-radius: 2px; overflow: hidden;">
+                                <div style="width: 45%; height: 100%; background: var(--warning);"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collection-card">
+                        <div class="collection-name">💪 Training Sessions</div>
+                        <div class="collection-count">4 videos</div>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.875rem; color: var(--success);">↑ 5% improvement</span>
+                                <span style="font-size: 0.875rem; color: var(--gray);">Last 30 days</span>
+                            </div>
+                            <div style="height: 4px; background: var(--light); border-radius: 2px; overflow: hidden;">
+                                <div style="width: 30%; height: 100%; background: linear-gradient(to right, var(--primary), var(--secondary));"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" style="margin-top: 1rem;" onclick="showModal('collection')">+ Create New Collection</button>
+            </div>
+
+            <div class="progress-chart">
+                <h3 style="font-size: 1.5rem;">Overall Progress</h3>
+                <div class="chart-container">
+                    <svg viewBox="0 0 600 250" style="width: 100%; height: 100%;">
+                        <!-- Simple line chart -->
+                        <polyline points="50,200 100,180 150,170 200,150 250,155 300,140 350,130 400,120 450,110 500,100" 
+                                  fill="none" 
+                                  stroke="url(#gradient)" 
+                                  stroke-width="3"/>
+                        <defs>
+                            <linearGradient id="gradient">
+                                <stop offset="0%" stop-color="#4F46E5"/>
+                                <stop offset="100%" stop-color="#06B6D4"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Data points -->
+                        <circle cx="50" cy="200" r="5" fill="#4F46E5"/>
+                        <circle cx="100" cy="180" r="5" fill="#4F46E5"/>
+                        <circle cx="150" cy="170" r="5" fill="#4F46E5"/>
+                        <circle cx="200" cy="150" r="5" fill="#4F46E5"/>
+                        <circle cx="250" cy="155" r="5" fill="#4F46E5"/>
+                        <circle cx="300" cy="140" r="5" fill="#4F46E5"/>
+                        <circle cx="350" cy="130" r="5" fill="#4F46E5"/>
+                        <circle cx="400" cy="120" r="5" fill="#4F46E5"/>
+                        <circle cx="450" cy="110" r="5" fill="#4F46E5"/>
+                        <circle cx="500" cy="100" r="5" fill="#06B6D4"/>
+                        <!-- Labels -->
+                        <text x="50" y="230" font-size="12" fill="#6B7280">Jan</text>
+                        <text x="200" y="230" font-size="12" fill="#6B7280">Jun</text>
+                        <text x="350" y="230" font-size="12" fill="#6B7280">Oct</text>
+                        <text x="500" y="230" font-size="12" fill="#6B7280">Now</text>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="injury-section">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Injury Tracking</h3>
+                <div class="injury-list">
+                    <div class="injury-item">
+                        <div>
+                            <div class="injury-name">Lower Back Strain</div>
+                            <div style="color: var(--gray); font-size: 0.875rem; margin-top: 0.25rem;">Affects rotation - Modified swing recommended</div>
+                        </div>
+                        <span class="injury-status status-active">Active</span>
+                    </div>
+                    <div class="injury-item">
+                        <div>
+                            <div class="injury-name">Tennis Elbow</div>
+                            <div style="color: var(--gray); font-size: 0.875rem; margin-top: 0.25rem;">Recovered - No limitations</div>
+                        </div>
+                        <span class="injury-status status-recovered">Recovered</span>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="showModal('injury')">+ Add Injury</button>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings" class="page">
+            <div class="settings-container">
+                <div class="settings-section">
+                    <h3 class="settings-title">Analysis Preferences</h3>
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Auto-detect Sport Type</div>
+                            <div class="setting-description">Automatically identify the sport in uploaded videos</div>
+                        </div>
+                        <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Advanced Biomechanics</div>
+                            <div class="setting-description">Show detailed joint angles and force vectors</div>
+                        </div>
+                        <div class="toggle-switch" onclick="toggleSwitch(this)">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Compare with Pros</div>
+                            <div class="setting-description">Include professional athlete comparisons</div>
+                        </div>
+                        <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-title">Notifications</h3>
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Analysis Complete</div>
+                            <div class="setting-description">Notify when video analysis is ready</div>
+                        </div>
+                        <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Weekly Progress Report</div>
+                            <div class="setting-description">Receive weekly improvement summaries</div>
+                        </div>
+                        <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-title">Privacy & Data</h3>
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Share Analytics Data</div>
+                            <div class="setting-description">Help improve our AI with anonymous usage data</div>
+                        </div>
+                        <div class="toggle-switch" onclick="toggleSwitch(this)">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Download All Data</button>
+                    <button class="btn" style="width: 100%; margin-top: 1rem; background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 2px solid var(--danger);">Delete Account</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modalTitle">Add New Collection</h3>
+                    <button class="close-btn" onclick="closeModal()">×</button>
+                </div>
+                <div id="modalBody">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Page Navigation
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // File Upload
+        document.getElementById('uploadArea').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('uploadArea').classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('uploadArea').classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('uploadArea').classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFile(file) {
+            if (file.type.startsWith('video/')) {
+                const uploadArea = document.getElementById('uploadArea');
+                uploadArea.innerHTML = `
+                    <div class="upload-icon">✅</div>
+                    <div class="upload-text">${file.name}</div>
+                    <div class="upload-subtext">Ready to analyze (${(file.size / 1024 / 1024).toFixed(2)} MB)</div>
+                `;
+                uploadArea.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1))';
+            } else {
+                alert('Please upload a video file');
+            }
+        }
+
+        function startAnalysis() {
+            // Simulate analysis start
+            const btn = event.target;
+            btn.innerHTML = '⏳ Analyzing...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                showPage('analysis');
+                btn.innerHTML = '🎯 Analyze Technique';
+                btn.disabled = false;
+                
+                // Reset upload area
+                document.getElementById('uploadArea').innerHTML = `
+                    <div class="upload-icon">📹</div>
+                    <div class="upload-text">Drop your video here or click to browse</div>
+                    <div class="upload-subtext">Supports MP4, MOV, AVI (max 500MB)</div>
+                `;
+                document.getElementById('uploadArea').style.background = 'linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(6, 182, 212, 0.05))';
+            }, 2000);
+        }
+
+        // Keyframe Selection
+        document.querySelectorAll('.keyframe-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.querySelectorAll('.keyframe-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+
+        // Toggle Switch
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+
+        // Modal Functions
+        function showModal(type) {
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            if (type === 'collection') {
+                modalTitle.textContent = 'Create New Collection';
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label">Collection Name</label>
+                        <input type="text" class="form-input" placeholder="e.g., Backhand Practice">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sport Type</label>
+                        <select class="form-input">
+                            <option>Golf</option>
+                            <option>Tennis</option>
+                            <option>Baseball</option>
+                            <option>Running</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description (optional)</label>
+                        <input type="text" class="form-input" placeholder="Notes about this collection">
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="closeModal()">Create Collection</button>
+                    </div>
+                `;
+            } else if (type === 'injury') {
+                modalTitle.textContent = 'Add Injury Information';
+                modalBody.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label">Injury Type</label>
+                        <input type="text" class="form-input" placeholder="e.g., Shoulder impingement">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-input">
+                            <option>Active</option>
+                            <option>Recovering</option>
+                            <option>Recovered</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date of Injury</label>
+                        <input type="date" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <input type="text" class="form-input" placeholder="How it affects your movement">
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="closeModal()">Add Injury</button>
+                    </div>
+                `;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
